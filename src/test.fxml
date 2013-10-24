@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="fxmlexample.FXMLExampleController">
+  <children>
+    <TabPane fx:id="tab" prefHeight="400.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <tabs>
+        <Tab closable="false" text="设置">
+          <content>
+            <AnchorPane prefHeight="200.0" prefWidth="200.0">
+              <children>
+                <VBox prefHeight="364.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <children>
+                    <GridPane prefHeight="168.00009999999747" prefWidth="600.0">
+                      <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="本地目录" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="远程目录" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="服务器地址" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="用户名" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="密码" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                        <TextField fx:id="local" prefWidth="200.0" text="" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                        <TextField fx:id="remote" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                        <TextField fx:id="host" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <TextField fx:id="username" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                        <PasswordField fx:id="password" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="6" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="端口" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                        <TextField fx:id="port" prefWidth="200.0" text="22" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="密钥" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                        <TextField fx:id="key" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                      </children>
+                      <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="299.0" minWidth="10.0" prefWidth="79.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="521.0" minWidth="10.0" prefWidth="521.0" />
+                      </columnConstraints>
+                      <rowConstraints>
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                      </rowConstraints>
+                    </GridPane>
+                    <Label text="Includes" />
+                    <TextArea fx:id="includes" prefHeight="80.0" prefWidth="580.0" wrapText="true">
+                      <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                      </VBox.margin>
+                    </TextArea>
+                    <Label text="Excludes" />
+                    <TextArea fx:id="excludes" prefHeight="80.0" prefWidth="580.0" wrapText="true">
+                      <VBox.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                      </VBox.margin>
+                    </TextArea>
+                    <HBox prefHeight="58.999900000002526" prefWidth="580.0">
+                      <children>
+                        <Button mnemonicParsing="false" onAction="#handleSaveButtonAction" prefHeight="30.0" prefWidth="83.0" text="保存配置">
+                          <HBox.margin>
+                            <Insets right="10.0" />
+                          </HBox.margin>
+                        </Button>
+                        <Button id="start" fx:id="startBtn" minHeight="30.0" mnemonicParsing="false" onAction="#handleSubmitButtonAction" prefHeight="30.0" prefWidth="100.0" text="开始同步" HBox.hgrow="ALWAYS">
+                          <HBox.margin>
+                            <Insets right="10.0" />
+                          </HBox.margin>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#handleStopButton" prefHeight="30.0" prefWidth="65.0" text="停止">
+                          <HBox.margin>
+                            <Insets right="10.0" />
+                          </HBox.margin>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#handleCloseButton" prefHeight="30.0" text="退出">
+                          <HBox.margin>
+                            <Insets right="10.0" />
+                          </HBox.margin>
+                        </Button>
+                        <Label fx:id="status" prefHeight="30.0" prefWidth="244.0" text="就绪" />
+                      </children>
+                    </HBox>
+                  </children>
+                </VBox>
+              </children>
+              <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+              </padding>
+            </AnchorPane>
+          </content>
+        </Tab>
+        <Tab text="日志">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <children>
+                <TextArea fx:id="logArea" editable="false" prefHeight="354.0" prefWidth="580.0" wrapText="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+              </children>
+              <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+              </padding>
+            </AnchorPane>
+          </content>
+        </Tab>
+        <Tab text="关于">
+          <content>
+            <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+              <children>
+                <WebView id="webview" fx:id="about" prefHeight="364.0" prefWidth="600.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
+              </children>
+            </AnchorPane>
+          </content>
+        </Tab>
+      </tabs>
+    </TabPane>
+  </children>
+</AnchorPane>
