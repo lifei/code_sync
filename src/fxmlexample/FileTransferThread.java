@@ -48,6 +48,7 @@ public class FileTransferThread extends Thread {
 		try {
 
 			session = jsch.getSession(this.username, this.host, this.port);
+			session.setConfig("PreferredAuthentications", "publickey,gssapi-with-mic,keyboard-interactive,password");
 
 			if (this.key != null && this.key.length() > 0) {
 				if (this.password != null && this.password.length() > 0) {
