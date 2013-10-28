@@ -48,7 +48,8 @@ public class FileTransferThread extends Thread {
 		try {
 
 			session = jsch.getSession(this.username, this.host, this.port);
-			session.setConfig("PreferredAuthentications", "publickey,gssapi-with-mic,keyboard-interactive,password");
+			session.setConfig("PreferredAuthentications",
+					"publickey,password,gssapi-with-mic,keyboard-interactive");
 
 			if (this.key != null && this.key.length() > 0) {
 				if (this.password != null && this.password.length() > 0) {
@@ -96,9 +97,21 @@ public class FileTransferThread extends Thread {
 							continue;
 						}
 
-						channel.put(file, file.replace("\\", "/"), null,
-								ChannelSftp.OVERWRITE);
-						this.controller.addLog("上传文件: " + file + " ok");
+						try {
+
+							channel.put(file, file.replace("\\", "/"), null,
+									ChannelSftp.OVERWRITE);
+							this.controller.addLog("上传文件: " + file + " ok");
+						} catch (final SftpException e) {
+
+							if (e.id < 4) {
+								this.controller.addLog("上传文件失败: " + file
+										+ " ，错误信息: " + e.getMessage());
+							} else {
+								throw e;
+							}
+
+						}
 					}
 					this.files.clear();
 				}
@@ -107,6 +120,7 @@ public class FileTransferThread extends Thread {
 		} catch (final JSchException | SftpException | InterruptedException e) {
 			this.controller.reset();
 			this.controller.addLog("同步发生错误，错误代码：" + e.getMessage());
+			e.printStackTrace();
 		} finally {
 			if (channel != null) {
 				channel.disconnect();
