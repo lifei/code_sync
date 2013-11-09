@@ -2,6 +2,7 @@ package fxmlexample;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Set;
 
 import jfx.messagebox.MessageBox;
 
@@ -21,7 +22,8 @@ public class FileTransferThread extends Thread {
 	private final String password;
 	private final String key;
 
-	private final HashSet<String> files = new HashSet<String>();
+	private final Set<FileEvent> directoryCreateEvents = new HashSet<>();
+	private final Set<FileEvent> fileEvents = new HashSet<>();
 	private final FXMLExampleController controller;
 
 	FileTransferThread(final String remote, final String local,
@@ -80,25 +82,20 @@ public class FileTransferThread extends Thread {
 
 			while (!this.isInterrupted()) {
 				synchronized (this) {
-					for (final String file : this.files) {
-						if (file.endsWith("/") || file.endsWith("\\")) {
-							continue;
-						}
-
-						final File fp = new File(this.local, file);
-						if (!fp.exists()) {
-							continue;
-						}
-
-						if (fp.isDirectory()) {
-							continue;
-						}
-
-						channel.put(file, file.replace("\\", "/"), null,
-								ChannelSftp.OVERWRITE);
-						this.controller.addLog("上传文件: " + file + " ok");
+					for(FileEvent event: directoryCreateEvents){
+						String filename = event.filename;
+						channel.mkdir(filename);
+						this.controller.addLog("创建文件夹: " + filename + " ok");
 					}
-					this.files.clear();
+					this.directoryCreateEvents.clear();
+					
+					for (final FileEvent event : this.fileEvents) {
+						String filename = event.filename;
+						channel.put(filename, filename.replace("\\", "/"), null,
+								ChannelSftp.OVERWRITE);
+						this.controller.addLog("上传文件: " + filename + " ok");
+					}
+					this.fileEvents.clear();
 					this.wait();
 				}
 
@@ -122,10 +119,40 @@ public class FileTransferThread extends Thread {
 
 	}
 
-	public void addFile(final String file) {
-		synchronized (this) {
-			this.files.add(file);
-			this.notify();
+	public void addFile(FileEvent event) {
+		if (event.eventType == FileEvent.Type.RENAME) {
+			// NOTE: take rename event as create now
+			// TODO: implement rename sync
+			event = new FileEvent(FileEvent.Type.CREATE,
+					((FileRenameEvent) event).newName);
+		}
+		String filename = event.filename;
+		if (filename.endsWith("/") || filename.endsWith("\\")) {
+			this.controller.addLog("ignore event: " + event);
+			return;
+		}
+		final File fp = new File(this.local, filename);
+		if (!fp.exists()) {
+			this.controller.addLog("local file not exists, ignore: " + event);
+			return;
+		}
+
+		event.filename = filename.replace("\\", "/");
+		if (fp.isDirectory()) {
+			if (event.eventType == FileEvent.Type.CREATE) {
+				synchronized (this) {
+					this.directoryCreateEvents.add(event);
+					this.notify();
+				}
+			} else {
+				this.controller.addLog("ignore directory event: " + event);
+				return;
+			}
+		} else {
+			synchronized (this) {
+				this.fileEvents.add(event);
+				this.notify();
+			}
 		}
 	}
 }
