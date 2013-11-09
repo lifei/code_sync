@@ -79,8 +79,6 @@ public class FileTransferThread extends Thread {
 					this.username, this.host, this.remote));
 
 			while (!this.isInterrupted()) {
-				Thread.sleep(500);
-
 				synchronized (this) {
 					for (final String file : this.files) {
 						if (file.endsWith("/") || file.endsWith("\\")) {
@@ -101,6 +99,7 @@ public class FileTransferThread extends Thread {
 						this.controller.addLog("上传文件: " + file + " ok");
 					}
 					this.files.clear();
+					this.wait();
 				}
 
 			}
@@ -126,6 +125,7 @@ public class FileTransferThread extends Thread {
 	public void addFile(final String file) {
 		synchronized (this) {
 			this.files.add(file);
+			this.notify();
 		}
 	}
 }
