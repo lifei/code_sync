@@ -68,7 +68,7 @@ public class FileChangedListener implements JNotifyListener {
 		if(!this.checkFile(name)){
 			return;
 		}
-		this.t.addFile(new FileEvent(FileEvent.Type.CREATE,name));
+		this.t.addFileEvent(new FileEvent(FileEvent.Type.CREATE,name));
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class FileChangedListener implements JNotifyListener {
 		if(!this.checkFile(name)){
 			return;
 		}
-		this.t.addFile(new FileEvent(FileEvent.Type.MODIFY,name));
+		this.t.addFileEvent(new FileEvent(FileEvent.Type.MODIFY,name));
 
 	}
 
@@ -93,7 +93,7 @@ public class FileChangedListener implements JNotifyListener {
 			return;
 		}
 		
-		this.t.addFile(new FileRenameEvent(oldName, newName));
+		this.t.addFileEvent(new FileRenameEvent(oldName, newName));
 	}
 
 }

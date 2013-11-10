@@ -119,7 +119,7 @@ public class FileTransferThread extends Thread {
 
 	}
 
-	public void addFile(FileEvent event) {
+	public void addFileEvent(FileEvent event) {
 		if (event.eventType == FileEvent.Type.RENAME) {
 			// NOTE: take rename event as create now
 			// TODO: implement rename sync
