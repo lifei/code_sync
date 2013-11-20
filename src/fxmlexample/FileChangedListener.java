@@ -55,17 +55,20 @@ public class FileChangedListener implements JNotifyListener {
 		return true;
 	}
 
-	private void addFile(final String file) {
-		if (!this.checkFile(file)) {
-			return;
-		}
-
-		this.t.addFile(file);
-	}
+//	private void addFile(final String file) {
+//		if (!this.checkFile(file)) {
+//			return;
+//		}
+//
+//		this.t.addFile(file);
+//	}
 
 	@Override
-	public void fileCreated(final int arg0, final String arg1, final String arg2) {
-		this.addFile(arg2);
+	public void fileCreated(final int wd, final String rootPath, final String name) {
+		if(!this.checkFile(name)){
+			return;
+		}
+		this.t.addFileEvent(new FileEvent(FileEvent.Type.CREATE,name));
 	}
 
 	@Override
@@ -74,16 +77,23 @@ public class FileChangedListener implements JNotifyListener {
 	}
 
 	@Override
-	public void fileModified(final int arg0, final String arg1,
-			final String arg2) {
-		this.addFile(arg2);
+	public void fileModified(final int wd, final String rootPath,
+			final String name) {
+		if(!this.checkFile(name)){
+			return;
+		}
+		this.t.addFileEvent(new FileEvent(FileEvent.Type.MODIFY,name));
 
 	}
 
 	@Override
-	public void fileRenamed(final int arg0, final String arg1,
-			final String arg2, final String arg3) {
-		this.addFile(arg2);
+	public void fileRenamed(final int wd, final String rootPath,
+			final String oldName, final String newName) {
+		if(!this.checkFile(newName)){
+			return;
+		}
+		
+		this.t.addFileEvent(new FileRenameEvent(oldName, newName));
 	}
 
 }

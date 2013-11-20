@@ -2,6 +2,7 @@ package fxmlexample;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Set;
 
 import jfx.messagebox.MessageBox;
 
@@ -13,6 +14,13 @@ import com.jcraft.jsch.SftpException;
 
 public class FileTransferThread extends Thread {
 
+	static {
+		// static initializer for JSch
+		JSch.setConfig("StrictHostKeyChecking", "no");
+		JSch.setConfig("PreferredAuthentications",
+				"publickey,gssapi-with-mic,keyboard-interactive,password");
+	}
+
 	private final String remote;
 	private final String local;
 	private final String host;
@@ -21,7 +29,8 @@ public class FileTransferThread extends Thread {
 	private final String password;
 	private final String key;
 
-	private final HashSet<String> files = new HashSet<String>();
+	private final Set<FileEvent> directoryCreateEvents = new HashSet<>();
+	private final Set<FileEvent> fileEvents = new HashSet<>();
 	private final FXMLExampleController controller;
 
 	FileTransferThread(final String remote, final String local,
@@ -40,9 +49,23 @@ public class FileTransferThread extends Thread {
 
 	@Override
 	public void run() {
-		JSch.setConfig("StrictHostKeyChecking", "no");
+		while (!this.isInterrupted()) {
+			try {
+				this._run();
+				this.controller.addLog("暂停同步, 30秒后重新尝试");
+				Thread.sleep(30000);
+			} catch (InterruptedException e) {
+				break;
+			}
+		}
+		this.controller.reset();
+		this.controller.addLog("同步已退出，请重新同步");
+		this.controller.showMessage("同步已退出", "同步已退出",
+				MessageBox.ICON_INFORMATION | MessageBox.OK);
+	}
 
-		final JSch jsch = new JSch();
+	private ChannelSftp getChannel() throws InterruptedException, JSchException {
+		JSch jsch = new JSch();
 		ChannelSftp channel = null;
 		Session session = null;
 		try {
@@ -60,18 +83,65 @@ public class FileTransferThread extends Thread {
 					this.controller.addLog("使用密钥登陆");
 				}
 			} else {
-				session.setPassword(this.password);
-				this.controller.addLog("使用密码登陆");
+				jsch.addIdentity(this.key);
+				this.controller.addLog("使用密钥登陆");
 			}
+		} else {
+			session.setPassword(this.password);
+			this.controller.addLog("使用密码登陆");
+		}
 
-			session.connect();
+		// 尝试连接三次
+		boolean isConnected = false;
+		JSchException connectException = null;
+		for (int i = 0; i < 3; i++) {
+			try {
+				session.connect();
+				isConnected = true;
+				break;
+			} catch (JSchException e) {
+				connectException = e;
+				Thread.sleep(5000);
+			}
+		}
+		if (!isConnected) {
+			throw connectException;
+		}
 
-			channel = (ChannelSftp) session.openChannel("sftp");
-			channel.connect();
+		channel = (ChannelSftp) session.openChannel("sftp");
+		channel.connect();
 
-			session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none");
-			session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none");
+		session.setConfig("compression.s2c", "zlib@openssh.com,zlib,none");
+		session.setConfig("compression.c2s", "zlib@openssh.com,zlib,none");
+		return channel;
+	}
 
+	private void disconnect(ChannelSftp channel) {
+		if (channel == null) {
+			return;
+		}
+		channel.disconnect();
+		try {
+			channel.getSession().disconnect();
+		} catch (JSchException e) {
+			// ignore intentionally
+		}
+	}
+
+	private void _run() throws InterruptedException {
+		if (this.directoryCreateEvents.size() > 100) {
+			this.controller.showMessage("有" + this.directoryCreateEvents.size()
+					+ "个文件夹创建事件没有同步了, 再不处理可能内存要爆了!", "同步警告",
+					MessageBox.ICON_WARNING | MessageBox.OK);
+		}
+		if (this.fileEvents.size() > 1000) {
+			this.controller.showMessage("有" + this.fileEvents.size()
+					+ "个文件事件没有同步了, 再不处理可能内存要爆了!", "同步警告",
+					MessageBox.ICON_WARNING | MessageBox.OK);
+		}
+		ChannelSftp channel = null;
+		try {
+			channel = this.getChannel();
 			channel.cd(this.remote);
 			channel.lcd(this.local);
 
@@ -80,66 +150,70 @@ public class FileTransferThread extends Thread {
 					this.username, this.host, this.remote));
 
 			while (!this.isInterrupted()) {
-				Thread.sleep(500);
-
 				synchronized (this) {
-					for (final String file : this.files) {
-						if (file.endsWith("/") || file.endsWith("\\")) {
-							continue;
-						}
-
-						final File fp = new File(this.local, file);
-						if (!fp.exists()) {
-							continue;
-						}
-
-						if (fp.isDirectory()) {
-							continue;
-						}
-
-						try {
-
-							channel.put(file, file.replace("\\", "/"), null,
-									ChannelSftp.OVERWRITE);
-							this.controller.addLog("上传文件: " + file + " ok");
-						} catch (final SftpException e) {
-
-							if (e.id < 4) {
-								this.controller.addLog("上传文件失败: " + file
-										+ " ，错误信息: " + e.getMessage());
-							} else {
-								throw e;
-							}
-
-						}
+					for (FileEvent event : directoryCreateEvents) {
+						String filename = event.filename;
+						channel.mkdir(filename);
+						this.controller.addLog("创建文件夹: " + filename + " ok");
 					}
-					this.files.clear();
+					this.directoryCreateEvents.clear();
+
+					for (final FileEvent event : this.fileEvents) {
+						String filename = event.filename;
+						channel.put(filename, filename.replace("\\", "/"),
+								null, ChannelSftp.OVERWRITE);
+						this.controller.addLog("上传文件: " + filename + " ok");
+					}
+					this.fileEvents.clear();
+					this.wait();
 				}
-
 			}
-		} catch (final JSchException | SftpException | InterruptedException e) {
-			this.controller.reset();
-			this.controller.addLog("同步发生错误，错误代码：" + e.getMessage());
-			e.printStackTrace();
+		} catch (SftpException e) {
+			this.controller.addLog("同步异常: " + e.getMessage());
+		} catch (InterruptedException e) {
+			this.controller.addLog("收到停止信号, 准备退出");
+			throw e;
+		} catch (JSchException e) {
+			this.controller.addLog("连接异常: " + e.getMessage());
 		} finally {
-			if (channel != null) {
-				channel.disconnect();
-			}
-
-			if (session != null) {
-				session.disconnect();
-			}
+			this.disconnect(channel);
 		}
-
-		this.controller.addLog("同步已退出，请重新同步");
-		this.controller.showMessage("同步已退出", "同步已退出",
-				MessageBox.ICON_INFORMATION | MessageBox.OK);
-
 	}
 
-	public void addFile(final String file) {
-		synchronized (this) {
-			this.files.add(file);
+	public void addFileEvent(FileEvent event) {
+		if (event.eventType == FileEvent.Type.RENAME) {
+			// NOTE: take rename event as create now
+			// TODO: implement rename sync
+			event = new FileEvent(FileEvent.Type.CREATE,
+					((FileRenameEvent) event).newName);
+		}
+		String filename = event.filename;
+		if (filename.endsWith("/") || filename.endsWith("\\")) {
+			this.controller.addLog("ignore event: " + event);
+			return;
+		}
+		final File fp = new File(this.local, filename);
+		if (!fp.exists()) {
+			this.controller.addLog("local file not exists, ignore: " + event);
+			return;
+		}
+
+		event.filename = filename.replace("\\", "/");
+		if (fp.isDirectory()) {
+			if (event.eventType == FileEvent.Type.CREATE) {
+				synchronized (this) {
+					this.directoryCreateEvents.add(event);
+					this.notify();
+				}
+			} else {
+				this.controller.addLog("ignore directory event: " + event);
+				return;
+			}
+		} else {
+			synchronized (this) {
+				this.fileEvents.add(event);
+				this.notify();
+			}
 		}
 	}
 }
