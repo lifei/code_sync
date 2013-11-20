@@ -54,7 +54,7 @@ public class FileTransferThread extends Thread {
 				this._run();
 				this.controller.addLog("暂停同步, 30秒后重新尝试");
 				Thread.sleep(30000);
-			} catch (InterruptedException e) {
+			} catch (final InterruptedException e) {
 				break;
 			}
 		}
@@ -65,23 +65,18 @@ public class FileTransferThread extends Thread {
 	}
 
 	private ChannelSftp getChannel() throws InterruptedException, JSchException {
-		JSch jsch = new JSch();
+		final JSch jsch = new JSch();
 		ChannelSftp channel = null;
 		Session session = null;
-		try {
 
-			session = jsch.getSession(this.username, this.host, this.port);
-			session.setConfig("PreferredAuthentications",
-					"publickey,password,gssapi-with-mic,keyboard-interactive");
+		session = jsch.getSession(this.username, this.host, this.port);
+		session.setConfig("PreferredAuthentications",
+				"publickey,password,gssapi-with-mic,keyboard-interactive");
 
-			if (this.key != null && this.key.length() > 0) {
-				if (this.password != null && this.password.length() > 0) {
-					jsch.addIdentity(this.key, this.password);
-					this.controller.addLog("使用有密码密钥登陆");
-				} else {
-					jsch.addIdentity(this.key);
-					this.controller.addLog("使用密钥登陆");
-				}
+		if (this.key != null && this.key.length() > 0) {
+			if (this.password != null && this.password.length() > 0) {
+				jsch.addIdentity(this.key, this.password);
+				this.controller.addLog("使用有密码密钥登陆");
 			} else {
 				jsch.addIdentity(this.key);
 				this.controller.addLog("使用密钥登陆");
@@ -99,7 +94,7 @@ public class FileTransferThread extends Thread {
 				session.connect();
 				isConnected = true;
 				break;
-			} catch (JSchException e) {
+			} catch (final JSchException e) {
 				connectException = e;
 				Thread.sleep(5000);
 			}
@@ -116,14 +111,14 @@ public class FileTransferThread extends Thread {
 		return channel;
 	}
 
-	private void disconnect(ChannelSftp channel) {
+	private void disconnect(final ChannelSftp channel) {
 		if (channel == null) {
 			return;
 		}
 		channel.disconnect();
 		try {
 			channel.getSession().disconnect();
-		} catch (JSchException e) {
+		} catch (final JSchException e) {
 			// ignore intentionally
 		}
 	}
@@ -151,15 +146,15 @@ public class FileTransferThread extends Thread {
 
 			while (!this.isInterrupted()) {
 				synchronized (this) {
-					for (FileEvent event : directoryCreateEvents) {
-						String filename = event.filename;
+					for (final FileEvent event : this.directoryCreateEvents) {
+						final String filename = event.filename;
 						channel.mkdir(filename);
 						this.controller.addLog("创建文件夹: " + filename + " ok");
 					}
 					this.directoryCreateEvents.clear();
 
 					for (final FileEvent event : this.fileEvents) {
-						String filename = event.filename;
+						final String filename = event.filename;
 						channel.put(filename, filename.replace("\\", "/"),
 								null, ChannelSftp.OVERWRITE);
 						this.controller.addLog("上传文件: " + filename + " ok");
@@ -168,12 +163,12 @@ public class FileTransferThread extends Thread {
 					this.wait();
 				}
 			}
-		} catch (SftpException e) {
+		} catch (final SftpException e) {
 			this.controller.addLog("同步异常: " + e.getMessage());
-		} catch (InterruptedException e) {
+		} catch (final InterruptedException e) {
 			this.controller.addLog("收到停止信号, 准备退出");
 			throw e;
-		} catch (JSchException e) {
+		} catch (final JSchException e) {
 			this.controller.addLog("连接异常: " + e.getMessage());
 		} finally {
 			this.disconnect(channel);
@@ -187,7 +182,7 @@ public class FileTransferThread extends Thread {
 			event = new FileEvent(FileEvent.Type.CREATE,
 					((FileRenameEvent) event).newName);
 		}
-		String filename = event.filename;
+		final String filename = event.filename;
 		if (filename.endsWith("/") || filename.endsWith("\\")) {
 			this.controller.addLog("ignore event: " + event);
 			return;
