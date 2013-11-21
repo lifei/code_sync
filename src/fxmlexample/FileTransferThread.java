@@ -1,6 +1,10 @@
 package fxmlexample;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -119,6 +123,25 @@ public class FileTransferThread extends Thread {
 		}
 	}
 
+	private boolean hasIOException(Throwable e) {
+		while (e != null) {
+			if (e instanceof IOException) {
+				return true;
+			}
+			e = e.getCause();
+		}
+		return false;
+	}
+
+	private void printException(Exception e, String message) {
+		Writer sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		this.controller
+				.addLog("异常内容: " + e.getMessage() + "\n" + sw.toString());
+		this.controller.addLog("printException: " + message);
+	}
+
 	private void _run() throws InterruptedException {
 		if (this.directoryCreateEvents.size() > 100) {
 			this.controller.showMessage("有" + this.directoryCreateEvents.size()
@@ -144,8 +167,16 @@ public class FileTransferThread extends Thread {
 				synchronized (this) {
 					for (FileEvent event : directoryCreateEvents) {
 						String filename = event.filename;
-						channel.mkdir(filename);
-						this.controller.addLog("创建文件夹: " + filename + " ok");
+						try {
+							channel.mkdir(filename);
+							this.controller
+									.addLog("创建文件夹: " + filename + " ok");
+						} catch (SftpException e) {
+							if (hasIOException(e)) {
+								throw e;
+							}
+							printException(e, "创建文件夹失败:" + filename + ", 忽略继续");
+						}
 					}
 					this.directoryCreateEvents.clear();
 
@@ -160,7 +191,7 @@ public class FileTransferThread extends Thread {
 				}
 			}
 		} catch (SftpException e) {
-			this.controller.addLog("同步异常: " + e.getMessage());
+			printException(e, "同步异常");
 		} catch (InterruptedException e) {
 			this.controller.addLog("收到停止信号, 准备退出");
 			throw e;
