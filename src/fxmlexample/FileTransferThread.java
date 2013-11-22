@@ -182,9 +182,16 @@ public class FileTransferThread extends Thread {
 
 					for (final FileEvent event : this.fileEvents) {
 						String filename = event.filename;
-						channel.put(filename, filename.replace("\\", "/"),
-								null, ChannelSftp.OVERWRITE);
-						this.controller.addLog("上传文件: " + filename + " ok");
+						try {
+							channel.put(filename, filename.replace("\\", "/"),
+									null, ChannelSftp.OVERWRITE);
+							this.controller.addLog("上传文件: " + filename + " ok");
+						} catch (SftpException e) {
+							if (hasIOException(e)) {
+								throw e;
+							}
+							printException(e, "上传文件失败:" + event + ", 忽略继续");
+						}
 					}
 					this.fileEvents.clear();
 					this.wait();
