@@ -1,4 +1,4 @@
-package helloworld;
+package main;
 
 import java.io.IOException;
 
@@ -8,7 +8,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class HelloWorld extends Application {
+public class Main extends Application {
 	public static void main(final String[] args) {
 		Application.launch(args);
 	}
@@ -17,7 +17,7 @@ public class HelloWorld extends Application {
 	public void start(final Stage stage) throws IOException {
 
 		final Parent root = FXMLLoader.load(this.getClass().getResource(
-				"/test.fxml"));
+				"/code_sync.fxml"));
 
 		root.getChildrenUnmodifiable();
 

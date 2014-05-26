@@ -1,4 +1,4 @@
-package fxmlexample;
+package net.code.sync;
 
 import java.io.BufferedReader;
 import java.io.File;

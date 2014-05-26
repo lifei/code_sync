@@ -1,4 +1,4 @@
-package fxmlexample;
+package net.code.sync;
 
 import net.contentobjects.jnotify.JNotifyListener;
 
@@ -6,21 +6,21 @@ public class FileChangedListener implements JNotifyListener {
 
 	private final String[] includes;
 	private final String[] excludes;
-	private final FileTransferThread t;
+	private final FileTransferThread fileTransferThread;
 
 	public FileChangedListener(final String[] includes,
 			final String[] excludes, final FileTransferThread t) {
 
 		this.includes = includes;
 		this.excludes = excludes;
-		this.t = t;
+		this.fileTransferThread = t;
 	}
 
 	public FileChangedListener(final FileTransferThread t) {
 
 		this.includes = new String[0];
 		this.excludes = new String[0];
-		this.t = t;
+		this.fileTransferThread = t;
 	}
 
 	private boolean checkFile(final String file) {
@@ -55,20 +55,12 @@ public class FileChangedListener implements JNotifyListener {
 		return true;
 	}
 
-//	private void addFile(final String file) {
-//		if (!this.checkFile(file)) {
-//			return;
-//		}
-//
-//		this.t.addFile(file);
-//	}
-
 	@Override
 	public void fileCreated(final int wd, final String rootPath, final String name) {
 		if(!this.checkFile(name)){
 			return;
 		}
-		this.t.addFileEvent(new FileEvent(FileEvent.Type.CREATE,name));
+		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.CREATE,name));
 	}
 
 	@Override
@@ -82,7 +74,7 @@ public class FileChangedListener implements JNotifyListener {
 		if(!this.checkFile(name)){
 			return;
 		}
-		this.t.addFileEvent(new FileEvent(FileEvent.Type.MODIFY,name));
+		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.MODIFY,name));
 
 	}
 
@@ -93,7 +85,7 @@ public class FileChangedListener implements JNotifyListener {
 			return;
 		}
 		
-		this.t.addFileEvent(new FileRenameEvent(oldName, newName));
+		this.fileTransferThread.addFileEvent(new FileRenameEvent(oldName, newName));
 	}
 
 }

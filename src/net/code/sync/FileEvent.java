@@ -1,4 +1,4 @@
-package fxmlexample;
+package net.code.sync;
 
 public class FileEvent {
 	

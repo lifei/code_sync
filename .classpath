@@ -6,5 +6,7 @@
 	<classpathentry kind="lib" path="libs/jsch-0.1.50.jar"/>
 	<classpathentry kind="lib" path="libs/fastjson-1.1.36.jar"/>
 	<classpathentry kind="lib" path="libs/jfxmessagebox-1.1.0.jar"/>
+	<classpathentry kind="lib" path="/opt/jdk1.7.0_21/jre/lib/ext/jfr.jar"/>
+	<classpathentry kind="lib" path="/opt/jdk1.7.0_21/jre/lib/ext/jfxrt.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

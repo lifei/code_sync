@@ -1,4 +1,4 @@
-package fxmlexample;
+package net.code.sync;
 
 import java.io.File;
 import java.util.HashSet;
