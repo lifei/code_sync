@@ -25,7 +25,7 @@ import net.contentobjects.jnotify.JNotifyException;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
-public class FXMLExampleController {
+public class CodeSyncController {
 
 	FileTransferThread thread = null;
 
@@ -107,51 +107,51 @@ public class FXMLExampleController {
 				final int mask = JNotify.FILE_CREATED | JNotify.FILE_DELETED
 						| JNotify.FILE_MODIFIED | JNotify.FILE_RENAMED;
 
-				final String incText = FXMLExampleController.this.includes
+				final String incText = CodeSyncController.this.includes
 						.getText();
-				final String excText = FXMLExampleController.this.excludes
+				final String excText = CodeSyncController.this.excludes
 						.getText();
 
 				final String[] incs = incText.split("\n");
 				final String[] excs = excText.split("\n");
 
-				FXMLExampleController.this.addLog(String.format(
+				CodeSyncController.this.addLog(String.format(
 						"Includes规则: %d个", incs.length));
-				FXMLExampleController.this.addLog(String.format(
+				CodeSyncController.this.addLog(String.format(
 						"Excludes规则: %d个", excs.length));
 
-				final String localText = FXMLExampleController.this.local
+				final String localText = CodeSyncController.this.local
 						.getText();
-				final String hostText = FXMLExampleController.this.host
+				final String hostText = CodeSyncController.this.host
 						.getText();
-				final String usernameText = FXMLExampleController.this.username
+				final String usernameText = CodeSyncController.this.username
 						.getText();
-				final String passwordText = FXMLExampleController.this.password
+				final String passwordText = CodeSyncController.this.password
 						.getText();
-				final String portText = FXMLExampleController.this.port
+				final String portText = CodeSyncController.this.port
 						.getText();
-				final String keyText = FXMLExampleController.this.key.getText();
-				final String remoteText = FXMLExampleController.this.remote
+				final String keyText = CodeSyncController.this.key.getText();
+				final String remoteText = CodeSyncController.this.remote
 						.getText();
 
-				FXMLExampleController.this.thread = new FileTransferThread(
+				CodeSyncController.this.thread = new FileTransferThread(
 						remoteText, localText, hostText, usernameText,
 						Integer.parseInt(portText), keyText, passwordText,
-						FXMLExampleController.this);
+						CodeSyncController.this);
 
-				FXMLExampleController.this.thread.setDaemon(true);
-				FXMLExampleController.this.thread.start();
+				CodeSyncController.this.thread.setDaemon(true);
+				CodeSyncController.this.thread.start();
 
 				final FileChangedListener listener = new FileChangedListener(
-						incs, excs, FXMLExampleController.this.thread);
+						incs, excs, CodeSyncController.this.thread);
 
 				try {
-					FXMLExampleController.this.watchId = JNotify.addWatch(
+					CodeSyncController.this.watchId = JNotify.addWatch(
 							localText, mask, true, listener);
-					FXMLExampleController.this.addLog("监控成功：" + localText);
-					FXMLExampleController.this.startBtn.setDisable(true);
+					CodeSyncController.this.addLog("监控成功：" + localText);
+					CodeSyncController.this.startBtn.setDisable(true);
 				} catch (final JNotifyException e) {
-					FXMLExampleController.this.addLog("启动失败");
+					CodeSyncController.this.addLog("启动失败");
 				}
 			}
 		}.start();
@@ -195,9 +195,9 @@ public class FXMLExampleController {
 			this.excludes.setText(json.containsKey("excludes") ? json
 					.getString("excludes") : "");
 
-			FXMLExampleController.this.addLog("读取配置成功。");
+			CodeSyncController.this.addLog("读取配置成功。");
 		} catch (final Exception e) {
-			FXMLExampleController.this.addLog("就绪");
+			CodeSyncController.this.addLog("就绪");
 		}
 
 		this.about
@@ -217,24 +217,24 @@ public class FXMLExampleController {
 			@Override
 			public void run() {
 
-				final String incText = FXMLExampleController.this.includes
+				final String incText = CodeSyncController.this.includes
 						.getText();
-				final String excText = FXMLExampleController.this.excludes
+				final String excText = CodeSyncController.this.excludes
 						.getText();
 
-				final String localText = FXMLExampleController.this.local
+				final String localText = CodeSyncController.this.local
 						.getText();
-				final String hostText = FXMLExampleController.this.host
+				final String hostText = CodeSyncController.this.host
 						.getText();
-				final String usernameText = FXMLExampleController.this.username
+				final String usernameText = CodeSyncController.this.username
 						.getText();
-				final String passwordText = FXMLExampleController.this.password
+				final String passwordText = CodeSyncController.this.password
 						.getText();
-				final String portText = FXMLExampleController.this.port
+				final String portText = CodeSyncController.this.port
 						.getText();
-				final String remoteText = FXMLExampleController.this.remote
+				final String remoteText = CodeSyncController.this.remote
 						.getText();
-				final String keyText = FXMLExampleController.this.key.getText();
+				final String keyText = CodeSyncController.this.key.getText();
 
 				final HashMap<String, String> settings = new HashMap<String, String>();
 
@@ -256,9 +256,9 @@ public class FXMLExampleController {
 					fw.write(json);
 					fw.close();
 
-					FXMLExampleController.this.addLog("保存配置成功！");
+					CodeSyncController.this.addLog("保存配置成功！");
 				} catch (final IOException e) {
-					FXMLExampleController.this.addLog("保存配置失败！错误代码："
+					CodeSyncController.this.addLog("保存配置失败！错误代码："
 							+ e.getMessage());
 				}
 			}
@@ -289,12 +289,12 @@ public class FXMLExampleController {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				FXMLExampleController.this.status.setText(log);
-				final String log2 = FXMLExampleController.this.logArea
+				CodeSyncController.this.status.setText(log);
+				final String log2 = CodeSyncController.this.logArea
 						.getText();
 				final SimpleDateFormat sFormat = new SimpleDateFormat(
 						"HH:mm:ss");
-				FXMLExampleController.this.logArea.setText(sFormat
+				CodeSyncController.this.logArea.setText(sFormat
 						.format(new Date()) + ":  " + log + "\r\n" + log2);
 			}
 		});
@@ -304,16 +304,16 @@ public class FXMLExampleController {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				FXMLExampleController.this.startBtn.setDisable(false);
-				FXMLExampleController.this.tab.getSelectionModel().select(0);
+				CodeSyncController.this.startBtn.setDisable(false);
+				CodeSyncController.this.tab.getSelectionModel().select(0);
 
-				if (FXMLExampleController.this.watchId != 0) {
+				if (CodeSyncController.this.watchId != 0) {
 					try {
-						JNotify.removeWatch(FXMLExampleController.this.watchId);
-						FXMLExampleController.this.watchId = 0;
-						FXMLExampleController.this.addLog("停止监控");
+						JNotify.removeWatch(CodeSyncController.this.watchId);
+						CodeSyncController.this.watchId = 0;
+						CodeSyncController.this.addLog("停止监控");
 					} catch (final JNotifyException e) {
-						FXMLExampleController.this.addLog("停止监控失败，错误代码: "
+						CodeSyncController.this.addLog("停止监控失败，错误代码: "
 								+ e.getMessage());
 					}
 				}

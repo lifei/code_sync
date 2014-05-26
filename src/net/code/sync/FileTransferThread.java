@@ -31,12 +31,12 @@ public class FileTransferThread extends Thread {
 
 	private final Set<FileEvent> directoryCreateEvents = new HashSet<>();
 	private final Set<FileEvent> fileEvents = new HashSet<>();
-	private final FXMLExampleController controller;
+	private final CodeSyncController controller;
 
 	FileTransferThread(final String remote, final String local,
 			final String host, final String username, final int port,
 			final String key, final String password,
-			final FXMLExampleController controller) {
+			final CodeSyncController controller) {
 		this.remote = remote;
 		this.local = local;
 		this.host = host;
