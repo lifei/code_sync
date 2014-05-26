@@ -152,6 +152,8 @@ public class CodeSyncController {
 					CodeSyncController.this.startBtn.setDisable(true);
 				} catch (final JNotifyException e) {
 					CodeSyncController.this.addLog("启动失败");
+				} catch (final UnsatisfiedLinkError e) {
+					CodeSyncController.this.addLog("启动失败，请检查配置重新启动，错误代码:" + e);
 				}
 			}
 		}.start();
@@ -201,12 +203,12 @@ public class CodeSyncController {
 		}
 
 		this.about
-				.getEngine()
-				.loadContent(
-						"<h1>Code Sync</h1><p>跨平台代码更改检测同步工具</p>"
-								+ "<p>特点：</p><li>跨平台，支持Windows、OS X、Linux系统</li><li>多种登陆方式</li>"
-								+ "<li>事件驱动，代替遍历文件</li><li>GUI界面方便使用</li>"
-								+ "<p>使用建议和Bug反馈： idoldog@163.com</p>");
+            .getEngine()
+            .loadContent(
+                  "<h1>Code Sync</h1><p>跨平台代码更改检测同步工具</p>"
+                + "<p>特点：</p><li>跨平台，支持Windows、OS X、Linux系统</li><li>多种登陆方式</li>"
+                + "<li>事件驱动，代替遍历文件</li><li>GUI界面方便使用</li>"
+                + "<p>使用建议和Bug反馈： idoldog@163.com</p>");
 
 	}
 

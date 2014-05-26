@@ -3,6 +3,7 @@ package net.code.sync;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.HashMap;
 
 import jfx.messagebox.MessageBox;
 
@@ -18,7 +19,7 @@ public class FileTransferThread extends Thread {
 		// static initializer for JSch
 		JSch.setConfig("StrictHostKeyChecking", "no");
 		JSch.setConfig("PreferredAuthentications",
-				"publickey,gssapi-with-mic,keyboard-interactive,password");
+				"publickey,password,keyboard-interactive,gssapi-with-mic");
 	}
 
 	private final String remote;
@@ -31,6 +32,7 @@ public class FileTransferThread extends Thread {
 
 	private final Set<FileEvent> directoryCreateEvents = new HashSet<>();
 	private final Set<FileEvent> fileEvents = new HashSet<>();
+	private final HashMap<String, Long> eventTimes = new HashMap<>();
 	private final CodeSyncController controller;
 
 	FileTransferThread(final String remote, final String local,
@@ -154,10 +156,23 @@ public class FileTransferThread extends Thread {
 					this.directoryCreateEvents.clear();
 
 					for (final FileEvent event : this.fileEvents) {
-						final String filename = event.filename;
-						channel.put(filename, filename.replace("\\", "/"),
-								null, ChannelSftp.OVERWRITE);
-						this.controller.addLog("上传文件: " + filename + " ok");
+						
+						if(event.eventType == FileEvent.Type.CREATE || event.eventType == FileEvent.Type.MODIFY) {
+							final String filename = event.filename;
+                            channel.put(filename, filename.replace("\\", "/"),
+                                    null, ChannelSftp.OVERWRITE);
+                            this.controller.addLog("上传文件: " + filename + " ok");
+						} else if(event.eventType == FileEvent.Type.RENAME) {
+							FileRenameEvent e = (FileRenameEvent)event;
+							final String newName = e.newName;
+							final String oldName = event.filename;
+							channel.rename(oldName.replace("\\", "/"), newName.replace("\\", "/"));
+                            this.controller.addLog("移动文件: " + oldName + " => " + newName + " ok");
+						} else if (event.eventType == FileEvent.Type.DELETE) {
+							final String filename = event.filename;
+							channel.rm(filename.replace("\\", "/"));
+                            this.controller.addLog("删除文件: " + filename + " ok");
+						}
 					}
 					this.fileEvents.clear();
 					this.wait();
@@ -174,21 +189,38 @@ public class FileTransferThread extends Thread {
 			this.disconnect(channel);
 		}
 	}
+	
+	private void mark(FileEvent event) {
+		
+		long t = System.currentTimeMillis();
+		this.eventTimes.put(event.toString(), t);
+	}
+	
+	private boolean checkTime(FileEvent event) {
+		
+		Long time = this.eventTimes.get(event.toString());
+		if(time == null) {
+			this.mark(event);
+			return true;
+		}
+		
+		long t = System.currentTimeMillis();
+		if (t - time > 5000) {
+			this.mark(event);
+			return true;
+		}
+		
+		return false;
+	}
 
 	public void addFileEvent(FileEvent event) {
-		if (event.eventType == FileEvent.Type.RENAME) {
-			// NOTE: take rename event as create now
-			// TODO: implement rename sync
-			event = new FileEvent(FileEvent.Type.CREATE,
-					((FileRenameEvent) event).newName);
-		}
 		final String filename = event.filename;
 		if (filename.endsWith("/") || filename.endsWith("\\")) {
 			this.controller.addLog("ignore event: " + event);
 			return;
 		}
 		final File fp = new File(this.local, filename);
-		if (!fp.exists()) {
+		if (!fp.exists() && (event.eventType == FileEvent.Type.CREATE || event.eventType == FileEvent.Type.MODIFY)) {
 			this.controller.addLog("local file not exists, ignore: " + event);
 			return;
 		}
@@ -206,6 +238,9 @@ public class FileTransferThread extends Thread {
 			}
 		} else {
 			synchronized (this) {
+				if(!this.checkTime(event)) {
+					return;
+				}
 				this.fileEvents.add(event);
 				this.notify();
 			}

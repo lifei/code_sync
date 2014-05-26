@@ -6,7 +6,8 @@ public class FileEvent {
 
 		MODIFY ("Modify"),
 		CREATE ("Create"),
-		RENAME ("Rename");
+		RENAME ("Rename"),
+		DELETE ("Delete");
 		
 		private final String str;
 		
@@ -31,6 +32,13 @@ public class FileEvent {
 	@Override
 	public int hashCode() {
 		return filename.hashCode() + eventType.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null) return false;
+		if(!(o instanceof FileEvent)) return false;
+		return this.eventType == ((FileEvent)o).eventType  && this.filename == ((FileEvent)o).filename;
 	}
 
 	@Override

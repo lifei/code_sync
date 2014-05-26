@@ -60,11 +60,15 @@ public class FileChangedListener implements JNotifyListener {
 		if(!this.checkFile(name)){
 			return;
 		}
-		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.CREATE,name));
+		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.CREATE, name));
 	}
 
 	@Override
-	public void fileDeleted(final int arg0, final String arg1, final String arg2) {
+	public void fileDeleted(final int arg0, final String arg1, final String name) {
+		if(!this.checkFile(name)){
+			return;
+		}
+		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.DELETE, name));
 
 	}
 
@@ -74,7 +78,7 @@ public class FileChangedListener implements JNotifyListener {
 		if(!this.checkFile(name)){
 			return;
 		}
-		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.MODIFY,name));
+		this.fileTransferThread.addFileEvent(new FileEvent(FileEvent.Type.MODIFY, name));
 
 	}
 

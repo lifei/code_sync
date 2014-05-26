@@ -23,7 +23,7 @@ public class Main extends Application {
 
 		final Scene scene = new Scene(root, 600, 400);
 
-		stage.setTitle("Code Sync v1.0");
+		stage.setTitle("Code Sync v1.1");
 		stage.setScene(scene);
 		stage.show();
 	}
